@@ -1,0 +1,269 @@
+from datetime import datetime
+from urllib.parse import parse_qsl
+
+import json
+import random
+
+# Constants
+ADV = "Advantage"
+TRI = "Triumph"
+SUC = "Success"
+BLANK = "Blank"
+DES = "Despair"
+FAI = "Failure"
+THR = "Threat"
+DK = "Dark"
+LT = "Light"
+
+# Dice values
+GREEN = [BLANK, [ADV, ADV], SUC, ADV, [SUC, SUC], [ADV, SUC], ADV, SUC]
+PURPLE = [THR, [FAI, FAI], [THR, THR], BLANK, THR, [FAI, THR], FAI, THR]
+YELLOW = [BLANK, [SUC, SUC], [ADV, SUC], [SUC, SUC], [ADV, SUC], SUC, [ADV, SUC], TRI, SUC, [ADV, ADV], ADV, [ADV, ADV]]
+RED = [BLANK, [FAI, FAI], DES, [FAI, FAI], FAI, [FAI, THR], FAI, [FAI, THR], THR, [THR, THR], THR, [THR, THR]]
+BLACK = [BLANK, BLANK, FAI, FAI, THR, THR]
+BLUE = [BLANK, BLANK, SUC, [ADV, ADV], [ADV, SUC], ADV]
+WHITE = [DK, DK, DK, DK, DK, DK, [DK, DK], LT, LT, [LT, LT], [LT, LT], [LT, LT]]
+
+# Help text
+hint = """Type a bunch of letters reflecting the color and number of dice to be rolled.
+            :g_ad_suc:    'g' or 'a' for green ability dice 
+            :y_triumph:    'y' for yellow proficiency dice   
+            :b_suc:    'b' for blue boost dice
+            :p_t:    'p' or 'd' for purple difficulty dice
+            :r_f_f:    'r' or 'c' for red challenge dice
+            :k_f:    's' or 'k' for black setback dice
+            :w_l_l:    'w' or 'f' for white force dice
+                
+          'ggyppr' is 2 green dice, 1 yellow die, 2 purple dice, and 1 red die"""
+
+def parse_input(data):
+    parsed = parse_qsl(data, keep_blank_values=True)
+    result = {}
+    for item in parsed:
+        result[item[0]] = item[1]
+    return result
+
+def lambda_handler(event, context):
+    # Parse the request
+    try:
+        request_data = parse_input(event["body"])
+    except:
+        return {
+            "statusCode": 400,
+            "headers": {"Content-Type": "application/json"},
+            "body": "{}",
+        }
+    
+    # Build the response object and check for 'help' request
+    if "help" in request_data["text"].lower():
+        response = {
+            "response_type": "ephemeral",
+            "text" : hint}
+        
+    elif "cheat" in request_data["text"].lower():
+        response = {
+            "response_type": "in_channel",
+            "text": "%s rolled:\n:y_triumph::y_triumph::y_triumph::y_triumph::y_triumph:\nin a totally legitimate fashion." % (request_data["user_name"])
+        }
+        
+    elif len(request_data["text"]) < 1:
+        response = {
+            "response_type": "in_channel",
+            "text": "%s rolled:\n\nabsolutely nothin'\n\nLike a boss." % (request_data["user_name"])
+        }
+        
+    else:
+        response = {
+            "response_type": "in_channel",
+            "text": str(roll_em(request_data)),
+        }
+
+    # Return the response as JSON
+    return {
+        "body": json.dumps(response),
+        "headers": {"Content-Type": "application/json"},
+        "statusCode": 200,
+    }
+
+# Get the dice sent to the bot, roll'em, and display results 
+def roll_em(request_data):   
+        
+        #Create empty list for recording individual die results
+        results_by_color = {"green" : [], "yellow" : [], "blue" : [], "purple" : [], "red" : [], "black" : [], "white" : []}
+        #Create tally of each type of die result
+        results = {TRI : 0, SUC : 0, ADV : 0, DES : 0, FAI : 0, THR : 0, BLANK : 0, DK : 0, LT : 0}
+        #other stuff
+        otherStuff = ""
+        #treat each index in the string as a die
+        for die in request_data["text"]:
+            
+            #set to lowercase to allow both uppercase and lowercase input
+            die = die.lower()
+            
+            #if the letter is either an A or a G, select a random face from the GREEN list,
+            #add that face to the individual rolls list, and put that face into the running tally
+            #for handling dice that cancel each other
+            if die == 'g' or die == 'a':
+                face = random.choice(GREEN)
+                tally(face, results)
+                results_by_color["green"].append(face)
+            elif die == "y":
+                face = random.choice(YELLOW)
+                tally(face, results)
+                results_by_color["yellow"].append(face)
+            elif die == "k" or die == 's':
+                face = random.choice(BLACK)
+                tally(face, results)
+                results_by_color["black"].append(face)
+            elif die == "b":
+                face = random.choice(BLUE)
+                tally(face, results)
+                results_by_color["blue"].append(face)
+            elif die == "p" or die == 'd':
+                face = random.choice(PURPLE)
+                tally(face, results)
+                results_by_color["purple"].append(face)
+            elif die == "r" or die == 'c':
+                face = random.choice(RED)
+                tally(face, results)
+                results_by_color["red"].append(face)
+            elif die == "w" or die == 'f':
+                face = random.choice(WHITE)
+                tally(face, results)
+                results_by_color["white"].append(face)
+            else:
+                otherStuff+=die
+
+        #run through function that handles dice cancellation
+        outcome = summarizeDice(results)
+        
+        #diceByColor(results_by_color)
+        greenEmojis = diceByColor(results_by_color, "green")
+        yellowEmojis = diceByColor(results_by_color, "yellow")
+        blueEmojis = diceByColor(results_by_color, "blue")
+        purpleEmojis = diceByColor(results_by_color, "purple")
+        redEmojis = diceByColor(results_by_color, "red")
+        blackEmojis = diceByColor(results_by_color, "black")
+        whiteEmojis = diceByColor(results_by_color, "white")
+        
+        allEmjois_rolled = greenEmojis + yellowEmojis + blueEmojis + purpleEmojis + redEmojis + blackEmojis + whiteEmojis
+        
+        #assembles package to be sent back to Slack with outcome of rolled dice
+        package =  "%s rolled\n%s \nfor a final outcome of %s" % (request_data["user_name"], allEmjois_rolled, outcome)
+
+        return package
+
+#this function keeps track of the total number of each kind of die result in the roll    
+def tally(face, results):
+    
+    #if it's a die result with two symbols, this parses it into individual symbols
+    if type(face) is list:
+        for i in face:
+            results[i] += 1
+    else:
+        results[face] += 1
+
+#this function does the dice cancellation between Threats/Advantage and Success/Failure        
+def summarizeDice(results):
+    
+    #empty dictionary/map to hold results
+    outcome = {}
+    
+    #subtract number of Failures from number of Successes and store result
+    successFail = results[SUC] - results[FAI]
+    
+    #subtract number of Threats from number of Advantages and store result
+    advantageThreat = results[ADV] - results[THR]
+    
+    #if more Success than Failures, this number will be positive and appended to the empty dictionary
+    #as the number of Success because all Failures were canceled out
+    if successFail > 0:
+        outcome[SUC] = successFail
+        
+    #If more Failures than Successes, we turn that negative number into an absolute value and append to the
+    #empty dictionary as the number of Failures because all of the Successes were canceled out
+    elif successFail < 0:
+        outcome[FAI] = abs(successFail)
+    
+    #same as above, but for Advantage and Threat    
+    if advantageThreat > 0:
+        outcome[ADV] = advantageThreat
+    elif advantageThreat < 0:
+        outcome[THR] = abs(advantageThreat)
+    
+    #only records Force die if there is a non-zero number of results    
+    if results[DK] > 0:
+        outcome[DK] = results[DK]
+        
+    if results[LT] > 0:
+        outcome[LT] = results[LT]
+    
+    #records non-zero Triumphs and Despairs    
+    if results[TRI] > 0:
+        outcome[TRI] = results[TRI]
+        
+    if results[DES] > 0:
+        outcome[DES] = results[DES]
+        
+    return outcome
+
+#function builds the emoji tags for the response message        
+def diceByColor(diceDictionary, key):
+    # dictionary = {"color" : [roll, roll, roll]}
+
+    emojis = ""
+    prefix = ":"
+    if key == "green":
+        prefix += "g"
+    elif key == "yellow":
+        prefix += "y"
+    elif key == "blue":
+        prefix += "b"
+    elif key == "purple":
+        prefix += "p"
+    elif key == "red":
+        prefix += "r"
+    elif key == "black":
+        prefix += "k"
+    elif key == "white":
+        prefix += "w"
+            
+    if len(diceDictionary[key]) > 0:
+        for i in diceDictionary[key]:
+            if type(i) is list:
+                double = ""
+                for item in i:
+                    if item == ADV:
+                        double += "_ad"
+                    elif item == SUC:
+                        double += "_suc"
+                    elif item == THR:
+                        double += "_t"
+                    elif item == FAI:
+                        double += "_f"
+                    elif item == DK:
+                        double += "_d"
+                    elif item == LT:
+                        double += "_l"
+                emojis += (prefix+double+": ")
+                    
+            if i == ADV:
+                emojis += (prefix + "_ad: ")
+            elif i == SUC:
+                emojis += (prefix + "_suc: ")
+            elif i == THR:
+                emojis += (prefix + "_t: ")
+            elif i == FAI:
+                emojis += (prefix + "_f: ")
+            elif i == DK:
+                emojis += (prefix + "_d: ")
+            elif i == LT:
+                emojis += (prefix + "_l: ")
+            elif i == TRI:
+                emojis += (prefix + "_triumph: ")
+            elif i == DES:
+                emojis += (prefix + "_despair: ")
+            elif i == BLANK:
+                emojis += (prefix + "_blank: ")
+    return emojis
+        
