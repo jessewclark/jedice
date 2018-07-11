@@ -63,20 +63,49 @@ def lambda_handler(event, context):
     elif "cheat" in request_data["text"].lower():
         response = {
             "response_type": "in_channel",
-            "text": "%s rolled:\n:y_triumph::y_triumph::y_triumph::y_triumph::y_triumph:\nin a totally legitimate fashion." % (request_data["user_name"])
-        }
+            "attachments": [
+            {
+            "color": "good",
+            "author_name": "<@%s> rolled" % (request_data["user_id"]),
+            "text": ":y_triumph: :y_triumph: :y_triumph: :y_triumph: :y_triumph:\n_in a totally legitimate fashion._"
+        }]}
         
     elif len(request_data["text"]) < 1:
         response = {
             "response_type": "in_channel",
-            "text": "%s rolled:\n\nabsolutely nothin'\n\nLike a boss." % (request_data["user_name"])
+            "attachments": [
+            {
+            "color": "danger",
+            "author_name": "<@%s> rolled" % (request_data["user_id"]),
+            "text": "\n\n*absolutely nothin'*\n\n"
+        }]}
+        
+    #message format debugging
+    elif "test" in request_data["text"].lower():
+        response = {
+            "response_type": "ephemeral",
+            "text": str(request_data)
         }
+        
+    elif "debug" in request_data["text"].lower():
+        response = {
+            "response_type": "ephemeral",
+            "attachments": [
+            {
+            "color": "#2eb886",
+            "author_name": "<@%s> rolled" % (request_data["user_id"]),
+            "text": str(roll_em(request_data))
+        }]}
         
     else:
         response = {
             "response_type": "in_channel",
-            "text": str(roll_em(request_data)),
-        }
+            "attachments": [
+            {
+            "color": "#2eb886",
+            "author_name": "<@%s> rolled" % (request_data["user_id"]),
+            "text": str(roll_em(request_data))
+        }]}
 
     # Return the response as JSON
     return {
@@ -149,7 +178,7 @@ def roll_em(request_data):
         allEmjois_rolled = greenEmojis + yellowEmojis + blueEmojis + purpleEmojis + redEmojis + blackEmojis + whiteEmojis
         
         #assembles package to be sent back to Slack with outcome of rolled dice
-        package =  "%s rolled\n%s \nfor a final outcome of %s" % (request_data["user_name"], allEmjois_rolled, outcome)
+        package =  "%s \n_After canceling symbols_ | *%s*" % (allEmjois_rolled, outcome)
 
         return package
 
@@ -204,8 +233,13 @@ def summarizeDice(results):
         
     if results[DES] > 0:
         outcome[DES] = results[DES]
-        
-    return outcome
+    
+    #translate dictionary in string to remove curly brackets for aesthetic reasons
+    outcomeString = ""
+    for item in outcome:
+        outcomeString += item + ": " + str(outcome[item]) + ",  "
+    outcomeString = outcomeString[:-3]
+    return outcomeString
 
 #function builds the emoji tags for the response message        
 def diceByColor(diceDictionary, key):
