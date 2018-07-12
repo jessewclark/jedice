@@ -1,0 +1,56 @@
+This is a list of the emoji tags you'll need to add to your Slack instance to use the dicebot without changing how it generates the names for the dice emoji to be displayed in responses.
+
+Naming convention is :color_symbol:. 
+If there are two symbols on a face, :color_symbol_symbol:
+
+## Yellow Dice ##
+:y_blank:
+:y_triumph:
+:y_ad:
+:y_ad_ad:
+:y_suc:
+:y_suc_suc:
+:y_ad_suc:
+
+## Green Dice ##
+:g_blank:
+:g_ad:
+:g_ad_ad:
+:g_suc:
+:g_suc_suc:
+:g_ad_suc:
+
+## Blue Dice ##
+:b_blank:
+:b_ad:
+:b_ad_ad:
+:b_suc:
+:b_ad_suc:
+
+## Purple Dice ##
+:p_blank:
+:p_t:
+:p_t_t:
+:p_f:
+:p_f_f:
+:p_f_t:
+
+## Red Dice ##
+:r_blank:
+:r_t:
+:r_t_t:
+:r_f:
+:r_f_f:
+:r_f_t:
+:r_despair:
+
+## Black Dice ##
+:k_blank:
+:k_t:
+:k_f:
+
+## White Dice ##
+:w_l:
+:w_l_l:
+:w_d:
+:w_d_d:
