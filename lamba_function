@@ -25,16 +25,14 @@ BLUE = [BLANK, BLANK, SUC, [ADV, ADV], [ADV, SUC], ADV]
 WHITE = [DK, DK, DK, DK, DK, DK, [DK, DK], LT, LT, [LT, LT], [LT, LT], [LT, LT]]
 
 # Help text
-hint = """Type a bunch of letters reflecting the color and number of dice to be rolled.
-            :g_ad_suc:    'g' or 'a' for green ability dice 
-            :y_triumph:    'y' for yellow proficiency dice   
-            :b_suc:    'b' for blue boost dice
-            :p_t:    'p' or 'd' for purple difficulty dice
-            :r_f_f:    'r' or 'c' for red challenge dice
-            :k_f:    's' or 'k' for black setback dice
-            :w_l_l:    'w' or 'f' for white force dice
-                
-          'ggyppr' is 2 green dice, 1 yellow die, 2 purple dice, and 1 red die"""
+hint = (":g_ad_suc:    'g' or 'a' for green ability dice\n"
+    ":y_triumph:    'y' for yellow proficiency dice\n"
+    ":b_suc:    'b' for blue boost dice\n"
+    ":p_t:    'p' or 'd' for purple difficulty dice\n"
+    ":r_f_f:    'r' or 'c' for red challenge dice\n"
+    ":k_f:    's' or 'k' for black setback dice\n"
+    ":w_l_l:    'w' or 'f' for white force dice\n\n"
+    "'ggyppr' is 2 green dice, 1 yellow die, 2 purple dice, and 1 red die")
 
 def parse_input(data):
     parsed = parse_qsl(data, keep_blank_values=True)
@@ -52,13 +50,18 @@ def lambda_handler(event, context):
             "statusCode": 400,
             "headers": {"Content-Type": "application/json"},
             "body": "{}",
-        }
+            }
     
     # Build the response object and check for 'help' request
     if "help" in request_data["text"].lower():
         response = {
             "response_type": "ephemeral",
-            "text" : hint}
+            "attachments" : [
+                {
+                "pretext": "Type a bunch of letters reflecting the color and number of dice to be rolled.",
+                "color": "#2eb886",
+                "text" : hint
+                }]}
         
     elif "cheat" in request_data["text"].lower():
         response = {
@@ -67,8 +70,17 @@ def lambda_handler(event, context):
             {
             "color": "good",
             "author_name": "<@%s> rolled" % (request_data["user_id"]),
-            "text": ":y_triumph: :y_triumph: :y_triumph: :y_triumph: :y_triumph:\n_in a totally legitimate fashion._"
-        }]}
+            "fields": [
+                {
+                    "title": "Dice",
+                    "value": ":y_triumph: :y_triumph: :y_triumph: :y_triumph: :y_triumph:",
+                    "short": False
+                },
+                {
+                    "title": "Outcome",
+                    "value": "Triumph: 5",
+                    "short": False
+                }]}]}
         
     elif len(request_data["text"]) < 1:
         response = {
@@ -78,41 +90,62 @@ def lambda_handler(event, context):
             "color": "danger",
             "author_name": "<@%s> rolled" % (request_data["user_id"]),
             "text": "\n\n*absolutely nothin'*\n\n"
-        }]}
+            }]}
         
-    #message format debugging
-    elif "test" in request_data["text"].lower():
+    #view the request package that Slack sends to API
+    elif "debug" in request_data["text"].lower():
         response = {
             "response_type": "ephemeral",
             "text": str(request_data)
-        }
+            }
         
-    elif "debug" in request_data["text"].lower():
+    elif "test" in request_data["text"].lower():
+        dx, ox = roll_em(request_data)
         response = {
             "response_type": "ephemeral",
             "attachments": [
             {
             "color": "#2eb886",
             "author_name": "<@%s> rolled" % (request_data["user_id"]),
-            "text": str(roll_em(request_data))
-        }]}
+            "fields": [
+                {
+                    "title": "Dice",
+                    "value": "%s" % (dx),
+                    "short": False
+                },
+                {
+                    "title": "Outcome",
+                    "value": "%s" % (ox),
+                    "short": False
+                }]}]}
         
     else:
+        dx, ox = roll_em(request_data)
         response = {
             "response_type": "in_channel",
             "attachments": [
             {
             "color": "#2eb886",
             "author_name": "<@%s> rolled" % (request_data["user_id"]),
-            "text": str(roll_em(request_data))
-        }]}
+            #"text": roll_em(request_data)
+            "fields": [
+                {
+                    "title": "Dice",
+                    "value": "%s" % (dx),
+                    "short": False
+                },
+                {
+                    "title": "Outcome",
+                    "value": "%s" % (ox),
+                    "short": False
+                }]}]}
 
     # Return the response as JSON
     return {
         "body": json.dumps(response),
         "headers": {"Content-Type": "application/json"},
         "statusCode": 200,
-    }
+        }
 
 # Get the dice sent to the bot, roll'em, and display results 
 def roll_em(request_data):   
@@ -177,10 +210,7 @@ def roll_em(request_data):
         
         allEmjois_rolled = greenEmojis + yellowEmojis + blueEmojis + purpleEmojis + redEmojis + blackEmojis + whiteEmojis
         
-        #assembles package to be sent back to Slack with outcome of rolled dice
-        package =  "%s \n_After canceling symbols_ | *%s*" % (allEmjois_rolled, outcome)
-
-        return package
+        return allEmjois_rolled, outcome
 
 #this function keeps track of the total number of each kind of die result in the roll    
 def tally(face, results):
@@ -300,4 +330,3 @@ def diceByColor(diceDictionary, key):
             elif i == BLANK:
                 emojis += (prefix + "_blank: ")
     return emojis
-        
