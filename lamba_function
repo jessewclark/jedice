@@ -15,6 +15,14 @@ THR = "Threat"
 DK = "Dark"
 LT = "Light"
 
+gre = "green"
+red = "red"
+blu = "blue"
+pur = "purple"
+bla = "black"
+whi = "white"
+yel = "yellow"
+
 # Dice values
 GREEN = [BLANK, [ADV, ADV], SUC, ADV, [SUC, SUC], [ADV, SUC], ADV, SUC]
 PURPLE = [THR, [FAI, FAI], [THR, THR], BLANK, THR, [FAI, THR], FAI, THR]
@@ -89,8 +97,12 @@ def lambda_handler(event, context):
             {
             "color": "danger",
             "author_name": "<@%s> rolled" % (request_data["user_id"]),
-            "text": "\n\n*absolutely nothin'*\n\n"
-            }]}
+            "fields": [
+                {
+                    "title": "NOTHING",
+                    "value": "",
+                    "short": False
+                }]}]}
         
     #view the request package that Slack sends to API
     elif "debug" in request_data["text"].lower():
@@ -127,7 +139,6 @@ def lambda_handler(event, context):
             {
             "color": "#2eb886",
             "author_name": "<@%s> rolled" % (request_data["user_id"]),
-            #"text": roll_em(request_data)
             "fields": [
                 {
                     "title": "Dice",
@@ -151,7 +162,7 @@ def lambda_handler(event, context):
 def roll_em(request_data):   
         
         #Create empty list for recording individual die results
-        results_by_color = {"green" : [], "yellow" : [], "blue" : [], "purple" : [], "red" : [], "black" : [], "white" : []}
+        results_by_color = {gre : [], yel : [], blu : [], pur : [], red : [], bla : [], whi : []}
         #Create tally of each type of die result
         results = {TRI : 0, SUC : 0, ADV : 0, DES : 0, FAI : 0, THR : 0, BLANK : 0, DK : 0, LT : 0}
         #other stuff
@@ -168,45 +179,47 @@ def roll_em(request_data):
             if die == 'g' or die == 'a':
                 face = random.choice(GREEN)
                 tally(face, results)
-                results_by_color["green"].append(face)
+                results_by_color[gre].append(face)
             elif die == "y":
                 face = random.choice(YELLOW)
                 tally(face, results)
-                results_by_color["yellow"].append(face)
+                results_by_color[yel].append(face)
             elif die == "k" or die == 's':
                 face = random.choice(BLACK)
                 tally(face, results)
-                results_by_color["black"].append(face)
+                results_by_color[bla].append(face)
             elif die == "b":
                 face = random.choice(BLUE)
                 tally(face, results)
-                results_by_color["blue"].append(face)
+                results_by_color[blu].append(face)
             elif die == "p" or die == 'd':
                 face = random.choice(PURPLE)
                 tally(face, results)
-                results_by_color["purple"].append(face)
+                results_by_color[pur].append(face)
             elif die == "r" or die == 'c':
                 face = random.choice(RED)
                 tally(face, results)
-                results_by_color["red"].append(face)
+                results_by_color[red].append(face)
             elif die == "w" or die == 'f':
                 face = random.choice(WHITE)
                 tally(face, results)
-                results_by_color["white"].append(face)
+                results_by_color[whi].append(face)
             else:
+                #we collect the invalid input and leave it here to die for now
                 otherStuff+=die
 
         #run through function that handles dice cancellation
         outcome = summarizeDice(results)
         
-        #diceByColor(results_by_color)
-        greenEmojis = diceByColor(results_by_color, "green")
-        yellowEmojis = diceByColor(results_by_color, "yellow")
-        blueEmojis = diceByColor(results_by_color, "blue")
-        purpleEmojis = diceByColor(results_by_color, "purple")
-        redEmojis = diceByColor(results_by_color, "red")
-        blackEmojis = diceByColor(results_by_color, "black")
-        whiteEmojis = diceByColor(results_by_color, "white")
+        #building the emojis by color lets our results look pretty by having
+        #the rolled dice sorted by color in the display
+        greenEmojis = emojiBuilder(results_by_color, gre)
+        yellowEmojis = emojiBuilder(results_by_color, yel)
+        blueEmojis = emojiBuilder(results_by_color, blu)
+        purpleEmojis = emojiBuilder(results_by_color, pur)
+        redEmojis = emojiBuilder(results_by_color, red)
+        blackEmojis = emojiBuilder(results_by_color, bla)
+        whiteEmojis = emojiBuilder(results_by_color, whi)
         
         allEmjois_rolled = greenEmojis + yellowEmojis + blueEmojis + purpleEmojis + redEmojis + blackEmojis + whiteEmojis
         
@@ -272,28 +285,29 @@ def summarizeDice(results):
     return outcomeString
 
 #function builds the emoji tags for the response message        
-def diceByColor(diceDictionary, key):
+def emojiBuilder(diceDictionary, key):
     # dictionary = {"color" : [roll, roll, roll]}
 
     emojis = ""
     prefix = ":"
-    if key == "green":
+    if key == gre:
         prefix += "g"
-    elif key == "yellow":
+    elif key == yel:
         prefix += "y"
-    elif key == "blue":
+    elif key == blu:
         prefix += "b"
-    elif key == "purple":
+    elif key == pur:
         prefix += "p"
-    elif key == "red":
+    elif key == red:
         prefix += "r"
-    elif key == "black":
+    elif key == bla:
         prefix += "k"
-    elif key == "white":
+    elif key == whi:
         prefix += "w"
             
     if len(diceDictionary[key]) > 0:
         for i in diceDictionary[key]:
+            #handles for die faces with two symbols
             if type(i) is list:
                 double = ""
                 for item in i:
@@ -310,7 +324,7 @@ def diceByColor(diceDictionary, key):
                     elif item == LT:
                         double += "_l"
                 emojis += (prefix+double+": ")
-                    
+            #handles for die faces with one symbol        
             if i == ADV:
                 emojis += (prefix + "_ad: ")
             elif i == SUC:
