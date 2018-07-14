@@ -38,11 +38,11 @@ After saving the bot, navigate to the Slash Commands on the left nav menu.
 
 ![alt text](https://github.com/wecter/jedice/blob/master/img/navToSlashCommand.png)
 
-Create a new Slash Command.
+Click "Create New Command".
 
 ![alt text](https://github.com/wecter/jedice/blob/master/img/createNewCommand.png)
 
-Name the command and save it for now. We'll come back for that URL field shortly.
+Name the command and save it for now. We'll come back for that Request URL field shortly.
 
 ![alt text](https://github.com/wecter/jedice/blob/master/img/nameSlashCommand.png?raw=true)
 
