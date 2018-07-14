@@ -8,7 +8,7 @@ This script is a Lambda function for AWS Lambda meant to be paired with AWS API 
 Ok. Hit Slack and create a App and a Bot User for the App.
 https://api.slack.com/apps
 
-Click on the "Create App" button.
+Click on the "Create New App" button.
 
 
 ![alt text](https://github.com/wecter/jedice/blob/master/img/Screenshot%202018-07-12%20at%209.48.07%20PM.png)
@@ -19,8 +19,12 @@ Give it an awesome name and select your Slack domain as the environment.
 
 ![alt text](https://github.com/wecter/jedice/blob/master/img/Screenshot%202018-07-12%20at%209.48.53%20PM.png)
 
+In the left hand navigation bar, choose "Bot Users".
+
 
 ![alt text](https://github.com/wecter/jedice/blob/master/img/Screenshot%202018-07-12%20at%209.49.19%20PM.png)
+
+Click "Add a Bot User".
 
 
 ![alt text](https://github.com/wecter/jedice/blob/master/img/Screenshot%202018-07-12%20at%209.49.37%20PM.png)
