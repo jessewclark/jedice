@@ -28,3 +28,24 @@ Click "Add a Bot User".
 
 
 ![alt text](https://github.com/wecter/jedice/blob/master/img/Screenshot%202018-07-12%20at%209.49.37%20PM.png)
+
+
+Fill out details for the bot user name and click "Add Bot User".
+
+![alt text](https://github.com/wecter/jedice/blob/master/img/addBotUser.png)
+
+After saving the bot, navigate to the Slash Commands on the left nav menu.
+
+![alt text](https://github.com/wecter/jedice/blob/master/img/navToSlashCommand.png)
+
+Create a new Slash Command.
+
+![alt text](https://github.com/wecter/jedice/blob/master/img/createNewCommand.png)
+
+Name the command and save it for now. We'll come back for that URL field shortly.
+
+![alt text](https://github.com/wecter/jedice/blob/master/img/nameSlashCommand.png?raw=true)
+
+
+
+
