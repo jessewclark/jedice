@@ -8,3 +8,10 @@ This script is a Lambda function for AWS Lambda meant to be paired with AWS API 
 Ok. Hit Slack and create a App and a Bot User for the App.
 https://api.slack.com/apps
 
+![alt text](https://github.com/wecter/jedice/blob/master/img/Screenshot%202018-07-12%20at%209.48.07%20PM.png)
+
+![alt text](https://github.com/wecter/jedice/blob/master/img/Screenshot%202018-07-12%20at%209.48.53%20PM.png)
+
+![alt text](https://github.com/wecter/jedice/blob/master/img/Screenshot%202018-07-12%20at%209.49.19%20PM.png)
+
+![alt text](https://github.com/wecter/jedice/blob/master/img/Screenshot%202018-07-12%20at%209.49.37%20PM.png)
